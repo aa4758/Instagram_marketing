@@ -48,9 +48,19 @@ class SlideRenderer:
 
     def __enter__(self) -> SlideRenderer:
         self._pw = sync_playwright().start()
-        kwargs = {"executable_path": self.chromium_executable} if self.chromium_executable else {}
-        self._browser = self._pw.chromium.launch(**kwargs)
-        return self
+        # 지정한 경로 → Playwright 내장 Chromium → PC에 설치된 Edge/Chrome 순서로 시도
+        options = [{"executable_path": self.chromium_executable}] if self.chromium_executable else []
+        options += [{}, {"channel": "msedge"}, {"channel": "chrome"}]
+        errors = []
+        for kwargs in options:
+            try:
+                self._browser = self._pw.chromium.launch(**kwargs)
+                return self
+            except Exception as e:
+                errors.append(f"{kwargs or 'chromium'}: {str(e).splitlines()[0]}")
+        self._pw.stop()
+        raise RuntimeError("렌더링용 브라우저를 찾지 못했습니다. Microsoft Edge 또는 Chrome을 설치하세요.\n"
+                           + "\n".join(errors))
 
     def __exit__(self, *exc) -> None:
         if self._browser:

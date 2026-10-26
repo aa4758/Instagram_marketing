@@ -5,6 +5,7 @@ description: |
   하루 3분 체크인으로 습관을 기록하고, 친구와 챌린지를 함께하며,
   매주 리포트로 내 변화를 확인하는 습관 관리 앱입니다.
 url: null            # 랜딩 페이지가 있으면 URL을 넣으세요 (내용을 읽어 참고합니다)
+github: null         # 예: "https://github.com/owner/repo" (README를 읽어 참고합니다)
 store_links:
   - "https://apps.apple.com/..."
 target: "자기계발에 관심 있는 20~30대 직장인"

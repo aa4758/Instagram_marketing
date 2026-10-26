@@ -1,17 +1,20 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from pathlib import Path
 
 import httpx
 import yaml
 from bs4 import BeautifulSoup
 
+from .github import fetch_repo
 from .models import Product
 
 log = logging.getLogger(__name__)
 
 PAGE_TEXT_LIMIT = 20_000
+README_LIMIT = 20_000
 
 
 def load_product(path: str | Path) -> Product:
@@ -54,3 +57,38 @@ def fetch_page_text(url: str, timeout: float = 20.0) -> str:
         log.warning("페이지 텍스트가 %d자라 앞부분 %d자만 사용합니다.", len(text), PAGE_TEXT_LIMIT)
         text = text[:PAGE_TEXT_LIMIT]
     return text
+
+
+def save_product(product: Product, path: str | Path) -> Path:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    data = product.model_dump(mode="json")
+    path.write_text(yaml.safe_dump(data, allow_unicode=True, sort_keys=False), encoding="utf-8")
+    return path
+
+
+def collect_source_text(
+    product: Product,
+    *,
+    github_token: str | None = None,
+    log: Callable[[str], None] = print,
+) -> str | None:
+    """웹페이지와 GitHub README에서 Claude에게 줄 참고 자료를 모은다. 실패한 출처는 건너뛴다."""
+    sources: list[str] = []
+    if product.url:
+        log(f"웹페이지 읽는 중: {product.url}")
+        try:
+            sources.append("[웹페이지]\n" + fetch_page_text(product.url))
+        except Exception as e:
+            log(f"  ⚠ 웹페이지를 읽지 못했습니다: {e}")
+    if product.github:
+        log(f"GitHub 저장소 읽는 중: {product.github}")
+        try:
+            text = fetch_repo(product.github, token=github_token).as_source_text()
+            if len(text) > README_LIMIT:
+                log(f"  README가 길어 앞부분 {README_LIMIT}자만 사용합니다.")
+                text = text[:README_LIMIT]
+            sources.append("[GitHub]\n" + text)
+        except Exception as e:
+            log(f"  ⚠ GitHub 저장소를 읽지 못했습니다: {e}")
+    return "\n\n".join(sources) or None

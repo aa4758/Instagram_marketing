@@ -24,6 +24,7 @@ class Product(BaseModel):
     tagline: str
     description: str = ""
     url: str | None = None
+    github: str | None = Field(default=None, description="설명을 가져올 GitHub 저장소 (owner/repo 또는 URL)")
     store_links: list[str] = Field(default_factory=list)
     target: str = ""
     tone: str = "친근하고 명확한 말투"
