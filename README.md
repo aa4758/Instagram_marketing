@@ -10,8 +10,8 @@ HTML 템플릿으로 한글 문구를 얹은 슬라이드를 만든 뒤, 승인�
 ## Windows 프로그램 (InstaPromo.exe)
 
 ### 받기
-- 저장소의 **Actions → Build Windows exe** 에서 최신 실행 결과를 열고 `InstaPromo-windows` 를 내려받습니다.
-- `v` 로 시작하는 태그(예: `v0.1.0`)를 올리면 **Releases** 에도 exe가 첨부됩니다.
+- 개발 중인 최신 빌드는 **Actions → Build Windows exe** 실행 결과의 `InstaPromo-windows` 에서 받을 수 있습니다 (90일 보관).
+- **Releases** 에서 최신 릴리스의 `InstaPromo.exe` 를 받을 수 있습니다. GitHub 웹에서 릴리스를 새로 게시하면 exe가 자동으로 빌드되어 첨부됩니다.
 - 서명되지 않은 프로그램이라 처음 실행할 때 Windows SmartScreen 경고가 나올 수 있습니다 (추가 정보 → 실행).
 - 슬라이드 렌더링에 PC에 설치된 **Microsoft Edge**(Windows 기본 포함) 또는 Chrome을 사용합니다.
 
