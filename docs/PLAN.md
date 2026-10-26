@@ -21,6 +21,7 @@
 
 ### 1.3 사용자
 - 1인 개발자·소규모 팀이 자기 앱/웹 서비스를 꾸준히 홍보하는 상황을 1차 대상으로 한다.
+- **확정: 홍보 전용 본인 계정 1개를 새로 만들어 사용한다.** 다른 사람 계정을 대신 관리하는 서비스가 아니므로 Meta 앱 검수, 다계정 로그인(OAuth) 화면, 계정별 권한 관리는 만들지 않는다.
 
 ---
 
@@ -114,12 +115,24 @@ AI 이미지 모델은 **글자(특히 한글)를 정확히 그리지 못하는 
 
 공식 **Instagram Graph API (Content Publishing)** 만 사용한다. 비공식 로그인 자동화(아이디/비밀번호로 앱 흉내)는 **계정 정지 위험과 이용약관 위반** 소지가 있어 쓰지 않는다.
 
-### 5.1 사전 준비
-1. Instagram 계정을 **비즈니스 또는 크리에이터 계정**으로 전환
-2. Meta for Developers에서 앱 생성, Instagram API 제품 추가
-3. 권한: `instagram_business_basic`, `instagram_business_content_publish` (Instagram 로그인 방식) 또는 Facebook 로그인 방식의 `instagram_content_publish` 등
-4. 본인 계정만 쓰면 개발 모드로 가능, 다른 사람 계정까지 지원하려면 **앱 검수(App Review)** 필요
-5. 장기 액세스 토큰(약 60일) 발급 및 **만료 전 자동 갱신**
+### 5.1 사전 준비 (홍보 전용 본인 계정 기준)
+본인 계정 하나만 쓰므로 **Meta 앱 검수 없이 개발 모드로 운영**할 수 있다. Facebook 페이지 연결이 필요 없는 **Instagram 로그인 방식 API**를 사용한다.
+
+1. **새 Instagram 계정 생성** (홍보 전용 이메일 사용 권장, 2단계 인증 설정)
+2. 설정에서 **프로페셔널 계정(비즈니스 또는 크리에이터)으로 전환**, 카테고리는 "앱 페이지"·"웹사이트" 등 선택
+3. **프로필 완성**: 프로필 사진(로고), 소개글, 웹사이트 링크(앱스토어·랜딩 페이지)
+4. Meta for Developers에서 앱 생성 → **Instagram API(Instagram 로그인)** 제품 추가
+5. 앱 역할에서 새 계정을 **Instagram 테스터로 추가**하고, Instagram 앱에서 초대 수락
+6. 권한 `instagram_business_basic`, `instagram_business_content_publish`, (성과 수집용) `instagram_business_manage_insights` 로 토큰 발급
+7. 단기 토큰 → **장기 토큰(약 60일)** 교환, 스케줄러가 만료 전에 자동 갱신
+8. 토큰과 `ig_user_id`는 `.env` 또는 시크릿 매니저에 보관 (계정이 하나라 DB 계정 테이블 없이 설정값으로 충분)
+
+### 5.1.1 새 계정 워밍업
+새로 만든 계정이 처음부터 API로 매일 여러 개를 올리면 스팸으로 의심받거나 도달이 낮을 수 있다.
+- 첫 1~2주: 주 2~3회, **검토 모드**로 게시
+- 첫 게시물 3~6개는 계정 소개·대표 기능 위주로 프로필 그리드를 채운다
+- 비슷한 분야 계정 팔로우, 댓글 응대 등 사람 활동을 병행한다
+- 이후 반응을 보며 게시 빈도를 늘린다
 
 ### 5.2 게시 절차
 ```
@@ -153,7 +166,6 @@ AI 이미지 모델은 **글자(특히 한글)를 정확히 그리지 못하는 
 |---|---|
 | `products` | id, name, tagline, description, url, store_links, target_audience, tone, banned_words, brand_colors, logo_path |
 | `product_profiles` | product_id, features[], benefits[], pain_points[], usp, screenshots[], updated_at |
-| `instagram_accounts` | id, ig_user_id, access_token(암호화), token_expires_at |
 | `content_plans` | id, product_id, period_start, period_end |
 | `posts` | id, plan_id, type(single/carousel), theme, caption, hashtags[], status(draft/approved/scheduled/published/failed), scheduled_at, ig_media_id, permalink |
 | `post_assets` | post_id, order, prompt, source(ai/template/screenshot), file_path, public_url |
@@ -195,7 +207,7 @@ AI 이미지 모델은 **글자(특히 한글)를 정확히 그리지 못하는 
 
 | 단계 | 기간(예상) | 결과물 |
 |---|---|---|
-| **0. 준비** | 2~3일 | Meta 앱·비즈니스 계정 설정, 토큰 발급, 테스트 게시 1건 성공 |
+| **0. 준비** | 2~3일 | 홍보 전용 계정 생성·프로페셔널 전환, Meta 앱(개발 모드)·테스터 등록, 토큰 발급, 테스트 게시 1건 성공 |
 | **1. CLI 프로토타입** | 1주 | `instapromo generate --product product.yaml` → 캡션 + 이미지 파일 생성, `instapromo publish <post_id>` 로 업로드 |
 | **2. 이미지 파이프라인** | 1주 | 템플릿 3~5종, AI 배경 합성, 스크린샷 목업, 캐러셀 |
 | **3. 스케줄러·DB** | 1주 | 콘텐츠 캘린더, 예약 게시, 재시도, 게시 한도 확인 |
@@ -265,7 +277,7 @@ posting:
 ---
 
 ## 11. 결정이 필요한 사항
-1. **사용 형태**: 본인 계정 전용 도구인지, 여러 고객 계정을 관리하는 서비스인지 (후자면 앱 검수·다계정 설계 필요)
+1. ~~**사용 형태**~~ → **확정: 홍보 전용 본인 계정 1개** (앱 검수·다계정 설계 불필요)
 2. **이미지 생성 API** 선택과 월 예산
 3. **검토 모드 기본 유지 여부** (완전 자동 허용 범위)
 4. **인터페이스**: CLI만으로 충분한지, 웹 대시보드가 1차부터 필요한지
