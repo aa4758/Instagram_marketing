@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: {{ width }}px; height: {{ height }}px; }
+  body {
+    font-family: "{{ brand.font }}", "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    color: {{ brand.text_color }};
+    background: linear-gradient(150deg, {{ brand.primary_color }}, {{ brand.secondary_color }});
+    position: relative;
+    overflow: hidden;
+    word-break: keep-all;
+  }
+  .bg { position: absolute; inset: 0; background-size: cover; background-position: center; }
+  .shade { position: absolute; inset: 0; }
+  .content { position: absolute; left: 88px; right: 88px; display: flex; flex-direction: column; gap: 28px; }
+  .headline { font-weight: 900; line-height: 1.2; letter-spacing: -0.02em; }
+  .body { font-weight: 400; line-height: 1.5; opacity: 0.95; }
+  .fit { overflow: hidden; }
+  .logo { position: absolute; top: 72px; left: 88px; height: 64px; }
+  .page { position: absolute; top: 80px; right: 88px; font-size: 28px; font-weight: 700; opacity: 0.85; }
+
+  /* cover: 전체 배경 + 하단 큰 제목 */
+  .cover .shade { background: linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,0.65) 100%); }
+  .cover .content { bottom: 120px; }
+  .cover .headline { font-size: 104px; max-height: 380px; }
+  .cover .body { font-size: 40px; max-height: 130px; }
+
+  /* feature: 상단 이미지 + 하단 브랜드색 텍스트 패널 */
+  .feature .bg { bottom: 42%; }
+  .feature .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 42%; background: {{ brand.primary_color }}; }
+  .feature .content { bottom: 96px; height: calc(42% - 160px); justify-content: center; }
+  .feature .headline { font-size: 72px; max-height: 180px; }
+  .feature .body { font-size: 38px; max-height: 120px; }
+
+  /* cta: 브랜드색 배경 중앙 정렬 */
+  .cta .content { top: 0; bottom: 0; justify-content: center; align-items: center; text-align: center; }
+  .cta .headline { font-size: 96px; max-height: 360px; }
+  .cta .body { font-size: 42px; max-height: 200px; }
+  .cta .button {
+    margin-top: 24px; padding: 28px 56px; border-radius: 999px;
+    background: {{ brand.text_color }}; color: {{ brand.primary_color }};
+    font-size: 40px; font-weight: 700;
+  }
+</style>
+</head>
+<body class="{{ slide.layout }}">
+  {% if background %}<div class="bg" style="background-image: url('{{ background }}')"></div>{% endif %}
+  <div class="shade"></div>
+  {% if slide.layout == "feature" %}<div class="panel"></div>{% endif %}
+  {% if logo %}<img class="logo" src="{{ logo }}" alt="">{% endif %}
+  {% if total > 1 %}<div class="page">{{ index }}/{{ total }}</div>{% endif %}
+  <div class="content">
+    <div class="headline fit">{{ slide.headline }}</div>
+    {% if slide.body %}<div class="body fit">{{ slide.body }}</div>{% endif %}
+    {% if slide.layout == "cta" %}<div class="button">프로필 링크에서 확인하기</div>{% endif %}
+  </div>
+</body>
+</html>

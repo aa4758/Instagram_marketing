@@ -1,0 +1,60 @@
+name: Build Windows exe
+
+on:
+  push:
+    branches: [main, "claude/**"]
+    tags: ["v*"]
+    paths:
+      - "src/**"
+      - "packaging/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - ".github/workflows/build-exe.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write  # 태그 빌드 시 릴리스에 exe 첨부
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: pip install ".[dev,build]"
+
+      - name: Test
+        run: pytest -q
+
+      - name: Build exe
+        run: >
+          pyinstaller --noconfirm --onefile --windowed --name InstaPromo
+          --collect-data instapromo --collect-data playwright
+          packaging/instapromo_gui.py
+
+      - name: Self-test exe
+        shell: pwsh
+        run: |
+          $out = Join-Path $env:RUNNER_TEMP "selftest"
+          $p = Start-Process -FilePath dist\InstaPromo.exe -ArgumentList "--selftest", "`"$out`"" -Wait -PassThru
+          Get-Content (Join-Path $out "result.txt")
+          if ($p.ExitCode -ne 0 -or !(Test-Path (Join-Path $out "slide.jpg"))) { exit 1 }
+          Copy-Item (Join-Path $out "slide.jpg") dist\selftest-slide.jpg
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: InstaPromo-windows
+          path: |
+            dist/InstaPromo.exe
+            dist/selftest-slide.jpg
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/InstaPromo.exe
